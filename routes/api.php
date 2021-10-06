@@ -97,10 +97,10 @@ Route::post('/entry', function (){
         $attendance->save();
         return ['message' =>  'Entry Successful'];
     }elseif ($userAt->entry_time == null){
-        $attendance = new Attendance();
-        $attendance->user_id = request('user_id');
-        $attendance->entry_time = request('entry_time');
-        $attendance->save();
+        //$attendance = new Attendance();
+        $userAt->user_id = request('user_id');
+        $userAt->entry_time = request('entry_time');
+        $userAt->save();
         return ['message' =>  'Entry Successful'];
     }
     else{
