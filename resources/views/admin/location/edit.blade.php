@@ -19,8 +19,8 @@
             <input type = "text" id="latitude" name="latitude" value="{{$location->latitude}}"><br>
             <label for="longitude">Longitude : </label>
             <input type = "text" id="longitude" name="longitude" value="{{$location->longitude}}"><br>
-            <label for="radius">Radius : </label>
-            <input type = "text" id="radius" name="radius" value="{{$location->radius}}"><br>
+            <label for="radius">Radius (in meter) : </label>
+            <input type = "text" id="radius" name="radius" value="{{$location->radius}} "> <br>
             <input type="submit" value="Update Location">
         </form>
     </div>

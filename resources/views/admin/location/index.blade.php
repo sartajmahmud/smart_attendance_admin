@@ -26,7 +26,7 @@
                     <td>{{ $location->name }}</td>
                     <td>{{ $location->latitude }}</td>
                     <td>{{ $location->longitude }}</td>
-                    <td>{{ $location->radius }}</td>
+                    <td>{{ $location->radius }} meter</td>
                     <td>{{ $location->updated_at }}</td>
                     <td>
 {{--                        <button class="w3-button w3-circle w3-grey" onclick="window.location.href='locations/{{$location->id}}'"><i class="fa fa-eye"></i></button>--}}

@@ -26,9 +26,21 @@
             </select><br>
 {{--            <input type = "text" id="attendance_type" name="attendance_type" value="{{$user->attendance_type}}"><br>--}}
             <label for="location_id">Location : </label>
-            <input type = "text" id="location_id" name="location_id" value="{{$user->locationName}}"><br>
+            <select id="location_id" name="location_id" value="{{$user->locationName}}">
+                <option value="0">Select</option>
+                @foreach($locations as $location)
+                <option {{$user->locationName==$location->name ? 'selected' : ''}} value="{{$location->id}}">{{$location->name}}</option>
+                @endforeach
+            </select><br>
+<!--            <input type = "text" id="location_id" name="location_id" value="{{$user->locationName}}"><br>-->
             <label for="network_id">Network : </label>
-            <input type = "text" id="network_id" name="network_id" value="{{$user->ssid}}"><br>
+            <select id="network_id" name="network_id" value="{{$user->ssid}}">
+                <option value="0">Select</option>
+                @foreach($networks as $network)
+                <option {{$user->ssid==$network->ssid ? 'selected' : ''}} value="{{$network->id}}">{{$network->ssid}}</option>
+                @endforeach
+            </select><br>
+<!--            <input type = "text" id="network_id" name="network_id" value="{{$user->ssid}}"><br>-->
             <input type="submit" value="Update User">
         </form>
     </div>

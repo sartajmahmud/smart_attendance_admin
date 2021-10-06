@@ -26,7 +26,6 @@
                 <td>{{ $attendance->exit_time }}</td>
                 <td>{{ $attendance->updated_at }}</td>
                 <td>
-                    <button class="w3-button w3-circle w3-grey" onclick="window.location.href='attendances/{{$attendance->id}}'"><i class="fa fa-eye"></i></button>
 {{--                    <button class="w3-button w3-circle w3-blue"><i class="fa fa-edit"></i></button>--}}
                     <form action="attendances/{{$attendance->id}}" method="POST">
                         @csrf

@@ -7,6 +7,8 @@ use App\Models\Network;
 use App\Models\User;
 use Illuminate\Http\Request;
 use DB;
+use Illuminate\Support\Facades\Http;
+
 class UserController extends Controller
 {
     /**
@@ -17,12 +19,13 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-        $join = DB::table('networks')
-            -> join('users', 'users.network_id','=','networks.id')
-            -> join('locations', 'users.location_id','=','locations.id')
-            -> join('types', 'users.attendance_type' , '=' , 'types.id')
+        $join = DB::table('users')
+            ->leftJoin('networks', 'users.network_id','=','networks.id')
+            -> leftJoin('locations', 'users.location_id','=','locations.id')
+            -> leftJoin('types', 'users.attendance_type' , '=' , 'types.id')
             ->select('users.id','users.name','users.email','types.name as typeName','locations.name as locationName','networks.ssid')
             ->get();
+        //return $join;
         //return $join;
         return view("admin.user.index") -> with('users' , $join);
     }
@@ -73,8 +76,9 @@ class UserController extends Controller
         //
         $networks = Network::all();
         $locations = Location::all();
-        $join =  DB::table('networks')
-            -> join('users', 'users.network_id','=','networks.id')
+        $join =  DB::table('users')
+            ->where('users.id',$id)
+            -> join('networks', 'users.network_id','=','networks.id')
             -> join('locations', 'users.location_id','=','locations.id')
             -> join('types', 'users.attendance_type' , '=' , 'types.id')
             ->select('users.id','users.name','users.email','types.name as typeName','locations.name as locationName','networks.ssid')
@@ -107,11 +111,34 @@ class UserController extends Controller
         //return $req->attendance_type;
         $user->attendance_type = $req->attendance_type;
 
-        $location = Location::where('name',$req->location_id)->get();
+       // return $req;
+        //$location = Location::where('name',$req->location_id)->get();
 
-        $user->location_id = $location[0]->id;
-        $network = Network::where('ssid',$req->network_id)->get();
-        $user->network_id = $network[0]->id;
+        //$user->location_id = $location[0]->id;
+        $user->location_id = $req->location_id;
+       // $network = Network::where('ssid',$req->network_id)->get();
+        //$user->network_id = $network[0]->id;
+        $user->network_id = $req->network_id;
+
+        //return $user;
+        $types = DB::table('types')->where('id',$user->attendance_type)->first();
+        $nets = DB::table('networks')->where('id',$user->network_id)->first();
+        $locs = DB::table('locations')->where('id',$user->location_id)->first();
+        //return $types;
+        $type = $types->name;
+        $net = $nets->ssid;
+        $loc = $locs->name;
+
+            Http::withHeaders([
+            'Authorization' => "key=AAAATj1i0lE:APA91bGDIDPbofZ1QdHQViFqjdNJ3sLj_B5oBBNkwjSzqgl_ZQy3dqlAAZuEbi0tKlOM8rDIG7Seg5VXN7cYgM4FjH44lg0kJfhP1wLiJkyTnuwc8DJ84QkdDRdM4i2GwcIIEEzKWafy"
+        ])->post('https://fcm.googleapis.com/fcm/send',[
+            'to' => $user->device_token,
+            'notification' => [
+                'body' => "Attendance-Type : $type , Assigned Network : $net, Assigned Location : $loc",
+                'title' => 'User Data Changed'
+            ]
+
+        ]);
         $user->save();
 
         return redirect('/admin/users');
