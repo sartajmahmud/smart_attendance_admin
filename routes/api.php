@@ -79,8 +79,7 @@ Route::post('/login', function (){
 Route::post('/entry', function (){
     request()->validate(
         [
-            'user_id' => 'required',
-            'entry_time' => 'required',
+            'user_id' => 'required'
         ]
     );
 
@@ -90,6 +89,9 @@ Route::post('/entry', function (){
     //dd($oldDate->diffInDays($newDate));
     //return $userAt;
     //return $userAt;
+
+    if(request('entry_time')!=null){
+
     if($userAt== null){
         $attendance = new Attendance();
         $attendance->user_id = request('user_id');
@@ -114,6 +116,25 @@ Route::post('/entry', function (){
             $attendance = new Attendance();
             $attendance->user_id = request('user_id');
             $attendance->entry_time = request('entry_time');
+            $attendance->save();
+            return ['message' =>  'Entry Successful'];
+        }
+    }
+    }else{
+
+    $attendance = Attendance::where('user_id',request('user_id'))->orderBy('attendances.id','desc')->first();
+        //$currentTime = \Illuminate\Support\Carbon::now();
+        $newDate = \Illuminate\Support\Carbon::parse(request('exit_time'));
+        $oldDate = \Illuminate\Support\Carbon::parse($attendance->entry_time);
+        //dd($oldDate->diffInDays($newDate));
+        //return $userAt;
+        if($attendance->exit_time != null){
+            return ['message' =>  'already exists'];
+        }else{
+
+            //$attendance = new Attendance();
+            $attendance->user_id = request('user_id');
+            $attendance->exit_time = request('exit_time');
             $attendance->save();
             return ['message' =>  'Entry Successful'];
         }
@@ -163,4 +184,66 @@ Route::get('/homescreendata/{id}', function($id){
             ->where('users.id',$id)->orderBy('attendances.id','desc')->first();
     }
     return $data;
+});
+
+Route::post('/attendance', function(){
+request()->validate(
+        [
+            'user_id' => 'required',
+            'latitude' => 'required',
+            'longitude' => 'required',
+            'ssid' => 'required'
+        ]
+    );
+            $userData = DB::table('users')
+            ->where('id','=' ,request('user_id'))
+            ->first();
+
+            $userAssignedLocationData = DB::table('locations')
+            ->where('id', '=', $userData->location_id)
+            ->first();
+
+            $userAssignedNetworkData = DB::table('networks')
+            ->where('id', '=', $userData->network_id)
+            ->first();
+
+            $userAt = Attendance::where('user_id',request('user_id'))
+            ->orderBy('attendances.id','desc')
+            ->first();
+
+            $userAssignedSSID = $userAssignedNetworkData->ssid;
+            $userAssignedLatitude = $userAssignedLocationData->latitude;
+            $userAssignedLongitude = $userAssignedLocationData->longitude;
+            $userAssignedAttendanceType = $userData->attendance_type;
+            $userAssignedRadius = $userAssignedLocationData->radius;
+            $currentTime = \Illuminate\Support\Carbon::now();
+
+           // $apiKey = 'AIzaSyCHZWSE97Js_lHU9UF4OWLuZHcrVeE6Qyo';
+            $apiKey = 'AIzaSyBzQ7shRAOAFAdZtIpYp9bNnQnFerPgotw';
+
+            if($userAssignedAttendanceType == 1){
+            //check the distance
+            $userCurrentLatitude = request('latitude');
+            $userCurrentLongitude = request('longitude');
+
+            $response = Http::get('https://maps.googleapis.com/maps/api/directions/json?origin='.$userCurrentLatitude.','.$userCurrentLongitude.'&destination='.$userAssignedLatitude.','.$userAssignedLongitude.'&key='.$apiKey);
+            $distance = $response["routes"][0]["legs"][0]["distance"]['value'];
+
+            if($distance <= $userAssignedRadius){
+                return$userAssignedRadius;
+                //attendance entry/exit code
+            }else{
+            return 'Out of assigned radius';
+            }
+            }
+            else if($userAssignedAttendanceType ==2){
+            //check the ssid
+            if($userAssignedSSID == request('ssid')){
+                return 'ssid match';
+                //attendance entry/exit code
+            }else{
+                return 'ssid mismatch';
+            }
+            }
+        return $userAssignedAttendanceType;
 });
