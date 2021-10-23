@@ -207,9 +207,6 @@ request()->validate(
             ->where('id', '=', $userData->network_id)
             ->first();
 
-            $userAt = Attendance::where('user_id',request('user_id'))
-            ->orderBy('attendances.id','desc')
-            ->first();
 
             $userAssignedSSID = $userAssignedNetworkData->ssid;
             $userAssignedLatitude = $userAssignedLocationData->latitude;
@@ -218,7 +215,7 @@ request()->validate(
             $userAssignedRadius = $userAssignedLocationData->radius;
             $currentTime = \Illuminate\Support\Carbon::now();
 
-           // $apiKey = 'AIzaSyCHZWSE97Js_lHU9UF4OWLuZHcrVeE6Qyo';
+            //$apiKey = 'AIzaSyCHZWSE97Js_lHU9UF4OWLuZHcrVeE6Qyo';
             $apiKey = 'AIzaSyBzQ7shRAOAFAdZtIpYp9bNnQnFerPgotw';
 
             if($userAssignedAttendanceType == 1){
@@ -230,19 +227,110 @@ request()->validate(
             $distance = $response["routes"][0]["legs"][0]["distance"]['value'];
 
             if($distance <= $userAssignedRadius){
-                return$userAssignedRadius;
+                //return$userAssignedRadius;
                 //attendance entry/exit code
+                $userAt = Attendance::where('user_id',request('user_id'))->orderBy('attendances.id','desc')->first();
+                if($userAt== null){
+                    $attendance = new Attendance();
+                    $attendance->user_id = request('user_id');
+                    $attendance->entry_time = $currentTime;
+                    $attendance->save();
+                    return ['message' =>  'Entry Successful'];
+                }elseif ($userAt->entry_time == null){
+                    //$attendance = new Attendance();
+                    $userAt->user_id = request('user_id');
+                    $userAt->entry_time = $currentTime;
+                    $userAt->save();
+                    return ['message' =>  'Entry Successful'];
+                }
+                else{
+                    $newDate = \Illuminate\Support\Carbon::parse($currentTime);
+                    $oldDate = \Illuminate\Support\Carbon::parse($userAt->entry_time);
+
+                    if($oldDate->diffInDays($newDate)==0){
+                        return ['message' =>  'already exists'];
+                    } else{
+
+                        $attendance = new Attendance();
+                        $attendance->user_id = request('user_id');
+                        $attendance->entry_time = $currentTime;
+                        $attendance->save();
+                        return ['message' =>  'Entry Successful'];
+                    }
+                }
             }else{
-            return 'Out of assigned radius';
+                $attendance = Attendance::where('user_id',request('user_id'))->orderBy('attendances.id','desc')->first();
+                if($attendance != null) {
+
+                    if ($attendance->exit_time != null) {
+                        return ['message' => 'already exists'];
+                    } else if ($attendance->entry_time != null) {
+
+                        //$attendance = new Attendance();
+                        $attendance->user_id = request('user_id');
+                        $attendance->exit_time = $currentTime;
+                        $attendance->save();
+                        return ['message' => 'Entry Successful'];
+                    } else {
+                        return ['message' => 'Entry first'];
+                    }
+                }else{
+                    return ['message' => 'Entry first'];
+                }
             }
             }
             else if($userAssignedAttendanceType ==2){
             //check the ssid
             if($userAssignedSSID == request('ssid')){
-                return 'ssid match';
                 //attendance entry/exit code
+                $userAt = Attendance::where('user_id',request('user_id'))->orderBy('attendances.id','desc')->first();
+                if($userAt== null){
+                    $attendance = new Attendance();
+                    $attendance->user_id = request('user_id');
+                    $attendance->entry_time = $currentTime;
+                    $attendance->save();
+                    return ['message' =>  'Entry Successful'];
+                }elseif ($userAt->entry_time == null){
+                    //$attendance = new Attendance();
+                    $userAt->user_id = request('user_id');
+                    $userAt->entry_time = $currentTime;
+                    $userAt->save();
+                    return ['message' =>  'Entry Successful'];
+                }
+                else{
+                    $newDate = \Illuminate\Support\Carbon::parse($currentTime);
+                    $oldDate = \Illuminate\Support\Carbon::parse($userAt->entry_time);
+
+                    if($oldDate->diffInDays($newDate)==0){
+                        return ['message' =>  'already exists'];
+                    } else{
+
+                        $attendance = new Attendance();
+                        $attendance->user_id = request('user_id');
+                        $attendance->entry_time = $currentTime;
+                        $attendance->save();
+                        return ['message' =>  'Entry Successful'];
+                    }
+                }
             }else{
-                return 'ssid mismatch';
+                $attendance = Attendance::where('user_id',request('user_id'))->orderBy('attendances.id','desc')->first();
+                if($attendance != null) {
+
+                    if ($attendance->exit_time != null) {
+                        return ['message' => 'already exists'];
+                    } else if ($attendance->entry_time != null) {
+
+                        //$attendance = new Attendance();
+                        $attendance->user_id = request('user_id');
+                        $attendance->exit_time = $currentTime;
+                        $attendance->save();
+                        return ['message' => 'Entry Successful'];
+                    } else {
+                        return ['message' => 'Entry first'];
+                    }
+                }else{
+                    return ['message' => 'Entry first'];
+                }
             }
             }
         return $userAssignedAttendanceType;
